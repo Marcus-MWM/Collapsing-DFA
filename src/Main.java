@@ -46,35 +46,11 @@ public class Main {
         printTable(xyTable);
 
         // Mark Table
-        for(int i = 1; i < xyTable.size(); i++){
-            for(int j = 1; j < xyTable.size(); j++){
-                if(!Objects.equals(xyTable.get(i).get(j), "unm")
-                        && !Objects.equals(xyTable.get(i).get(j), "rp")){
-                    String values = xyTable.get(i).get(j);
-                    String temp = values.substring(values.indexOf('{') + 1, values.indexOf('}'));
-                    String[] currencies = temp.split(", ");
-                    int numFinal = 0;
-                    for(int z = 0; z < currencies.length; z++){
-                        if(currencies[z].contains("F")){
-                            numFinal++;
-                        }
-                    }
-
-                    if(numFinal > 0){
-                        if(numFinal != currencies.length){
-                            temp = "del";
-                            Vector<String> locateCord = xyTable.get(i);
-                            locateCord.set(j, temp);
-                            xyTable.set(i, locateCord);
-                        }
-                    }
-
-                }
-            }
-        }
+        markTable(xyTable);
 
         printTable(xyTable);
 
+        // Find the value of each cord in the table
         Vector<Vector<String>> valueRows = new Vector<>();
         for(int j = 1; j < tableVect.get(0).size(); j++){
             Vector<String> eachRow = new Vector<>();
@@ -120,6 +96,36 @@ public class Main {
                         }
                         tempT.add(tempHold);
                     }
+
+                    if(currencies[1] == "2"){
+                        System.out.println();
+                    }
+
+                    for(int x = 0; x < tempT.size(); x++){
+                        Vector<Integer> intTemp = new Vector<>();
+                        int numFinal = 0;
+                        for(int z = 0; z < tempT.get(0).size(); z++){
+                            if(tempT.get(x).get(z).contains("F")){
+                            intTemp.add(
+                                    Integer.parseInt(tempT.get(x).get(z).replace("F", "")));
+                                numFinal++;
+                            } else {
+                            intTemp.add(Integer.parseInt(tempT.get(x).get(z)));
+                            }
+                        }
+                        String tempStr = xyTable.get(intTemp.get(0)).get(intTemp.get(1));
+                        String fi = "when";
+
+                        if(tempStr == "del"){
+                            xyTable.get(Integer.parseInt(currencies[0]))
+                                    .get(Integer.parseInt(currencies[1])).replace(values, "del");
+                        }
+                        if(numFinal > 0 && numFinal != currencies.length){
+                            xyTable.get(Integer.parseInt(currencies[0]))
+                                    .get(Integer.parseInt(currencies[1])).replace(values, "del");
+                        }
+                    }
+
                     System.out.println(tempT);
                     System.out.println();
 
@@ -127,7 +133,37 @@ public class Main {
             }
         }
 
+        printTable(xyTable);
 
+
+    }
+
+    public static Vector<Vector<String>> markTable(Vector<Vector<String>> xyTable){
+        for(int i = 1; i < xyTable.size(); i++){
+            for(int j = 1; j < xyTable.size(); j++){
+                if(!Objects.equals(xyTable.get(i).get(j), "unm")
+                        && !Objects.equals(xyTable.get(i).get(j), "rp")){
+                    String values = xyTable.get(i).get(j);
+                    String temp = values.substring(values.indexOf('{') + 1, values.indexOf('}'));
+                    String[] currencies = temp.split(", ");
+                    int numFinal = 0;
+                    for(int z = 0; z < currencies.length; z++){
+                        if(currencies[z].contains("F")){
+                            numFinal++;
+                        }
+                    }
+
+                    if(numFinal > 0 && numFinal != currencies.length){
+                        temp = "del";
+                        Vector<String> locateCord = xyTable.get(i);
+                        locateCord.set(j, temp);
+                        xyTable.set(i, locateCord);
+                    }
+
+                }
+            }
+        }
+        return xyTable;
     }
 
     public static void tablePairs(Vector<Vector<String>> xyTable){
