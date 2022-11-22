@@ -1,7 +1,4 @@
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.FileReader;
-import java.io.IOException;
+import java.io.*;
 import java.util.Arrays;
 import java.util.Objects;
 import java.util.Vector;
@@ -39,6 +36,8 @@ public class Main {
         System.out.println(tableVect);
         System.out.println();
 
+        printTable(tableVect);
+
         // Setup Table
         Vector<Vector<String>> xyTable = tableSetup(tableVect);
 
@@ -64,78 +63,93 @@ public class Main {
         System.out.println();
 
         // Find the following values until no more changes occur
-        for(int i = 1; i < xyTable.size(); i++){
-            for(int j = 1; j < xyTable.size(); j++){
-                if(!Objects.equals(xyTable.get(i).get(j), "unm")
-                        && !Objects.equals(xyTable.get(i).get(j), "rp")
-                        && !Objects.equals(xyTable.get(i).get(j), "del")){
+        repeatPairs(xyTable, valueRows);
 
-                    String values = xyTable.get(i).get(j);
-                    String temp = values.substring(values.indexOf('{') + 1, values.indexOf('}'));
-                    String[] currencies = temp.split(", ");
+//        printTable(xyTable);
+        rewriteTextFile(tableVect);
 
-                    Vector<String> pointValue = new Vector<>();
-                    for(int k = 0; k < valueRows.size(); k++){
-                        pointValue.add(currencies[k]);
-                    }
+    }
 
-                    System.out.println(pointValue);
-                    Vector<Vector<String>> tempT = new Vector<>();
-                    for(int k = 0; k < valueRows.size(); k++){
-                        Vector<String> tempHold = new Vector<>();
-                        for(int z = 0; z < currencies.length; z++){
-                            int strTemp = 0;
-                            if(currencies[z].contains("F")){
-                                strTemp = Integer.parseInt(currencies[z].replace("F", ""));
-                            } else {
-                                strTemp = Integer.parseInt(currencies[z]);
-                            }
+    public static Vector<Vector<String>> findPointValue(
+            Vector<Vector<String>> valueRows, String[] currencies){
 
-                            String tempStr = valueRows.get(k).get(strTemp + 1);
-                            tempHold.add(tempStr);
-                        }
-                        tempT.add(tempHold);
-                    }
-
-                    if(currencies[1] == "2"){
-                        System.out.println();
-                    }
-
-                    for(int x = 0; x < tempT.size(); x++){
-                        Vector<Integer> intTemp = new Vector<>();
-                        int numFinal = 0;
-                        for(int z = 0; z < tempT.get(0).size(); z++){
-                            if(tempT.get(x).get(z).contains("F")){
-                            intTemp.add(
-                                    Integer.parseInt(tempT.get(x).get(z).replace("F", "")));
-                                numFinal++;
-                            } else {
-                            intTemp.add(Integer.parseInt(tempT.get(x).get(z)));
-                            }
-                        }
-                        String tempStr = xyTable.get(intTemp.get(0)).get(intTemp.get(1));
-                        String fi = "when";
-
-                        if(tempStr == "del"){
-                            xyTable.get(Integer.parseInt(currencies[0]))
-                                    .get(Integer.parseInt(currencies[1])).replace(values, "del");
-                        }
-                        if(numFinal > 0 && numFinal != currencies.length){
-                            xyTable.get(Integer.parseInt(currencies[0]))
-                                    .get(Integer.parseInt(currencies[1])).replace(values, "del");
-                        }
-                    }
-
-                    System.out.println(tempT);
-                    System.out.println();
-
-                }
-            }
+        Vector<Vector<String>> tempT = new Vector<>();
+        Vector<String> pointValue = new Vector<>();
+        for(int k = 0; k < valueRows.size(); k++){
+            pointValue.add(currencies[k]);
         }
 
-        printTable(xyTable);
+        System.out.println(pointValue);
+        for(int k = 0; k < valueRows.size(); k++){
+            Vector<String> tempHold = new Vector<>();
+            for(int z = 0; z < currencies.length; z++){
+                int strTemp;
+                if(currencies[z].contains("F")){
+                    strTemp = Integer.parseInt(currencies[z].replace("F", ""));
+                } else {
+                    strTemp = Integer.parseInt(currencies[z]);
+                }
 
+                String tempStr = valueRows.get(k).get(strTemp + 1);
+                tempHold.add(tempStr);
+            }
+            tempT.add(tempHold);
+        }
+        return  tempT;
+    }
 
+    public static void repeatPairs(Vector<Vector<String>> xyTable,
+                                   Vector<Vector<String>> valueRows){
+        boolean fixTable = false;
+        while (!fixTable){
+            int fixInt = 0;
+            for(int i = 1; i < xyTable.size(); i++){
+                for(int j = 1; j < xyTable.size(); j++){
+                    if(!Objects.equals(xyTable.get(i).get(j), "unm")
+                            && !Objects.equals(xyTable.get(i).get(j), "rp")
+                            && !Objects.equals(xyTable.get(i).get(j), "del")){
+
+                        String values = xyTable.get(i).get(j);
+                        String temp = values.substring(values.indexOf('{') + 1, values.indexOf('}'));
+                        String[] currencies = temp.split(", ");
+
+                        Vector<Vector<String>> tempT = findPointValue(valueRows, currencies);
+
+                        System.out.println(tempT);
+                        System.out.println();
+
+                        for(int x = 0; x < tempT.size(); x++){
+                            Vector<Integer> intTemp = new Vector<>();
+                            int numFinal = 0;
+                            for(int z = 0; z < tempT.get(0).size(); z++){
+                                if(tempT.get(x).get(z).contains("F")){
+                                    intTemp.add(
+                                            Integer.parseInt(tempT.get(x).get(z)
+                                                    .replace("F", "")));
+                                    numFinal++;
+                                } else {
+                                    intTemp.add(Integer.parseInt(tempT.get(x).get(z)));
+                                }
+                            }
+                            String tempStr = xyTable.get(intTemp.get(1) + 1).get(intTemp.get(0) + 1);
+
+                            if(Objects.equals(tempStr, "del") ||
+                                    (numFinal > 0 && numFinal != currencies.length)){
+                                Vector<String> locateCord = xyTable.get(i);
+                                locateCord.set(j, "del");
+                                xyTable.set(i, locateCord);
+                                fixInt++;
+                            }
+                        }
+                    }
+                }
+            }
+
+            if(fixInt <= 0){
+                fixTable = true;
+            }
+            printTable(xyTable);
+        }
     }
 
     public static Vector<Vector<String>> markTable(Vector<Vector<String>> xyTable){
@@ -217,6 +231,63 @@ public class Main {
             System.out.println();
         }
         System.out.println();
+    }
+
+    public static void rewriteTextFile(Vector<Vector<String>> xyTable) throws IOException{
+        // create a new text file to rewrite the simplified table
+        System.out.println("create a new text file");
+        File file = new File("solvedTable.txt");
+
+        BufferedReader br = new BufferedReader(new FileReader(file));
+
+//        String line;
+//        while ((line = br.readLine()) != null) {
+//            System.out.println(line);
+//        }
+
+//        FileWriter fw = new FileWriter(file);
+        BufferedWriter bw = new BufferedWriter(new FileWriter(file));
+
+//        bw.write("replace the info in the file\n");
+
+//        Vector<String> repl = new Vector<>();
+//        Vector<Vector<String>> dupl;
+//        repl.addElement("X a b\n");
+//        repl.addElement("0S 1 0\n");
+//        repl.addElement("1 1 2\n");
+//        repl.addElement("2 3F 0\n");
+//        repl.addElement("3F 3F 4F\n");
+//        repl.addElement("4F 3F 5F\n");
+//        repl.addElement("5F 3F 5F\n");
+//
+//        for(int i = 0; i < repl.size(); i++) {
+//            bw.write(repl.elementAt(i));
+//        }
+//        bw.write(repl.elementAt(0));
+//        bw.write(repl.elementAt(1));
+//        bw.write("1 1 2\n");
+//        bw.write("2 3F 0\n");
+//        bw.write("3F 3F 4F\n");
+//        bw.write("4F 3F 5F\n");
+//        bw.write("5F 3F 5F\n");
+
+//        for (String line = br.readLine(); line != null; line = br.readLine()) {
+//            System.out.println(line);
+//        }
+
+        for(int i = 0; i < xyTable.size(); i++){
+            for(int j = 0; j < xyTable.get(i).size(); j++){
+                // write into text file here
+                bw.write(xyTable.get(i).get(j) + "\t");
+                System.out.print(xyTable.get(i).get(j) + "\t");
+            }
+            System.out.println();
+            bw.write("\n");
+        }
+        System.out.println();
+
+        br.close();
+        bw.close();
     }
 
 }
