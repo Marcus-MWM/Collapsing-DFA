@@ -65,9 +65,181 @@ public class Main {
         // Find the following values until no more changes occur
         repeatPairs(xyTable, valueRows);
 
-//        printTable(xyTable);
+        Vector<String> endValues = new Vector<>();
+        for(int i = 1; i < xyTable.size(); i++){
+            for(int j = 1; j < xyTable.get(0).size(); j++){
+
+                if(!Objects.equals(xyTable.get(i).get(j), "del") &&
+                        !Objects.equals(xyTable.get(i).get(j), "unm") &&
+                        !Objects.equals(xyTable.get(i).get(j), "rp")){
+
+                    endValues.add(xyTable.get(i).get(j));
+
+                }
+
+            }
+        }
+        System.out.println(endValues);
+        System.out.println();
+
+        Vector<Vector<String>> finalStates = new Vector<>();
+        Vector<Vector<String>> normStates = new Vector<>();
+
+        for(int i = 0; i < endValues.size(); i++){
+            Vector<String> tempStates = new Vector<>();
+            String temp = endValues.get(i).substring(endValues.get(i).indexOf('{') + 1, endValues.get(i).indexOf('}'));
+            String[] currencies = temp.split(", ");
+
+            if(currencies[0].contains("F")){
+                for(int j = 0; j < currencies.length; j++){
+                    tempStates.add(currencies[j]);
+                }
+                finalStates.add(tempStates);
+            } else {
+                for(int j = 0; j < currencies.length; j++){
+                    tempStates.add(currencies[j]);
+                }
+
+                normStates.add(tempStates);
+            }
+        }
+
+//        Vector<String> finS = new Vector<>();
+//        finS.add("6F");
+//        finS.add("7F");
+//        finalStates.add(finS);
+
+        System.out.println(finalStates);
+        System.out.println();
+
+//        Vector<String> finV = new Vector<>();
+//        finV.add("0");
+//        finV.add("1");
+//        normStates.add(finV);
+//        finV = new Vector<>();
+//        finV.add("1");
+//        finV.add("2");
+//        normStates.add(finV);
+//        finV = new Vector<>();
+//        finV.add("3");
+//        finV.add("4");
+//        normStates.add(finV);
+
+        System.out.println(normStates);
+        System.out.println();
+
+        Vector<Vector<String>> totalFinalStates = findTotalStates(finalStates);
+        Vector<Vector<String>> totalNormStates = findTotalStates(normStates);
+
+        Vector<Vector<String>> totalStates = new Vector<>();
+
+        totalStates.addAll(totalNormStates);
+        totalStates.addAll(totalFinalStates);
+
+        System.out.println(totalStates);
+        System.out.println();
+
+        Vector<String> convertStates = new Vector<>();
+
+        for(int i = 0; i < totalStates.size(); i++){
+            String temp = "";
+            for(int j = 0; j < totalStates.get(i).size(); j++){
+                temp = temp + totalStates.get(i).get(j);
+                if(j + 1 != totalStates.get(i).size()){
+                    temp = temp + " = ";
+                }
+            }
+            convertStates.add(temp);
+        }
+
+        System.out.println(convertStates);
+        System.out.println();
+
+        for(int i = 1; i < tableVect.size(); i++){
+            for(int j = 0; j < tableVect.get(i).size(); j++){
+
+                for(int x = 0; x < totalStates.size(); x++){
+                    for (int y = 0; y < totalStates.get(x).size(); y++){
+                        if(Objects.equals(tableVect.get(i).get(j), totalStates.get(x).get(y))){
+                            Vector<String> tempVect = tableVect.get(i);
+                            tempVect.set(j, convertStates.get(0));
+                            tableVect.set(i, tempVect);
+                        }
+                    }
+                }
+
+            }
+        }
+
+
         rewriteTextFile(tableVect);
 
+    }
+
+    public static Vector<Vector<String>> findTotalStates(Vector<Vector<String>> finalStates){
+        Vector<Vector<String>> totalStates = new Vector<>();
+
+        if(finalStates.size() != 0){
+            if(finalStates.size() > 1) {
+                for (int i = 0; i < finalStates.get(0).size(); i++) {
+                    Vector<String> solStates = new Vector<>();
+                    String strValue = finalStates.get(i).get(1);
+                    solStates.add(finalStates.get(0).get(0));
+                    for (int j = 1; j < finalStates.size(); j++) {
+                        if (Objects.equals(strValue, finalStates.get(j).get(0))) {
+                            solStates.add(finalStates.get(j).get(0));
+                            solStates.add(finalStates.get(j).get(1));
+                        }
+
+                    }
+                    totalStates.add(solStates);
+                }
+            }
+
+            for(int i = 0; i < totalStates.get(0).size(); i++) {
+                String tempState = totalStates.get(0).get(i);
+                for(int j = 1; j < totalStates.size(); j++){
+                    if(Objects.equals(tempState, totalStates.get(j).get(0))){
+                        totalStates.remove(j);
+                        j--;
+                    }
+                }
+            }
+
+            for(int k = 0; k < 1; k++) {
+                for(int z = 0; z < totalStates.get(k).size(); z++){
+
+                    for(int i = 0; i < finalStates.size(); i++) {
+                        if(!Objects.equals(totalStates.get(k).get(z), finalStates.get(i).get(0))){
+                            totalStates.add(finalStates.get(i));
+                        }
+                    }
+
+                }
+            }
+
+            for(int i = 0; i < totalStates.size(); i++) {
+                Vector<String> tempState = totalStates.get(i);
+                for(int j = i + 1; j < totalStates.size(); j++){
+
+                    if(tempState == totalStates.get(j)){
+                        totalStates.remove(j);
+                        j--;
+                    }
+                }
+            }
+
+            for(int i = 0; i < totalStates.get(0).size(); i++) {
+                String tempState = totalStates.get(0).get(i);
+                for(int j = 1; j < totalStates.size(); j++){
+                    if(Objects.equals(tempState, totalStates.get(j).get(0))){
+                        totalStates.remove(j);
+                        j--;
+                    }
+                }
+            }
+        }
+        return  totalStates;
     }
 
     public static Vector<Vector<String>> findPointValue(
