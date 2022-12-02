@@ -12,20 +12,21 @@ public class Main {
         Vector<Vector<String>> tableVect = new Vector<>();
         String startState = "";
         String st;
-        while ((st = br.readLine()) != null) {
-            String[] currencies = st.split(" ");
-            Vector<String> tempArray = new Vector<>();
-            for(int i = 0; i < currencies.length; i++){
-
-                if(currencies[i].contains("S")){
-                    startState = currencies[i];
-                    tempArray.add(currencies[i].replace("S", ""));
-                } else{
-                    tempArray.add(currencies[i]);
-                }
-            }
-            tableVect.add(tempArray);
-        }
+        tableVect = makeArray(br);
+//        while ((st = br.readLine()) != null) {
+//            String[] currencies = st.split(" ");
+//            Vector<String> tempArray = new Vector<>();
+//            for(int i = 0; i < currencies.length; i++){
+//
+//                if(currencies[i].contains("S")){
+//                    startState = currencies[i];
+//                    tempArray.add(currencies[i].replace("S", ""));
+//                } else{
+//                    tempArray.add(currencies[i]);
+//                }
+//            }
+//            tableVect.add(tempArray);
+//        }
 
         System.out.println("Start State:");
         System.out.println(startState);
@@ -109,8 +110,6 @@ public class Main {
 //        finS.add("7F");
 //        finalStates.add(finS);
 
-        System.out.println(finalStates);
-        System.out.println();
 
 //        Vector<String> finV = new Vector<>();
 //        finV.add("0");
@@ -124,6 +123,8 @@ public class Main {
 //        finV.add("3");
 //        finV.add("4");
 //        normStates.add(finV);
+        System.out.println(finalStates);
+        System.out.println();
 
         System.out.println(normStates);
         System.out.println();
@@ -171,9 +172,37 @@ public class Main {
             }
         }
 
-
         rewriteTextFile(tableVect);
+    }
 
+    /**
+     * this method will generate an array of str, based on lines from specified
+     * text files
+     *
+     *         Vector<Vector<String>> tableVect = new Vector<>();
+     *         String startState = "";
+     *         String st;
+     */
+    public static Vector<Vector<String>> makeArray(BufferedReader br) throws IOException {
+        //
+        Vector<Vector<String>> tableVect = new Vector<>();
+        String startState = "";
+        String st;
+        while ((st = br.readLine()) != null) {
+            String[] currencies = st.split(" ");
+            Vector<String> tempArray = new Vector<>();
+            for (int i = 0; i <currencies.length; i++) {
+                if (currencies[i].contains("S")) {
+                    startState = currencies[i];
+                    tempArray.add(currencies[i].replace("S", ""));
+                } else {
+                    tempArray.add(currencies[i]);
+                }
+            }
+            tableVect.add(tempArray);
+        }
+
+        return tableVect;
     }
 
     public static Vector<Vector<String>> findTotalStates(Vector<Vector<String>> finalStates){
